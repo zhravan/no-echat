@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [EmergencyPacketEntity::class],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 abstract class NoEchatDatabase : RoomDatabase() {
@@ -19,7 +19,9 @@ abstract class NoEchatDatabase : RoomDatabase() {
                 context.applicationContext,
                 NoEchatDatabase::class.java,
                 "noechat.db"
-            ).fallbackToDestructiveMigration()
+            )
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .fallbackToDestructiveMigration()
                 .build()
     }
 }

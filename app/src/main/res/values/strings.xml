@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">NoEchat</string>
+    <string name="relay_channel_name">Mesh relay</string>
+    <string name="relay_notification_title">Relay active</string>
+    <string name="relay_notification_body">Forwarding nearby packets</string>
 </resources>

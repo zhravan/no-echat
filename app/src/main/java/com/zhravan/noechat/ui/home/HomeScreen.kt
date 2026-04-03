@@ -12,8 +12,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.zhravan.noechat.ui.rememberAppViewModelFactory
 
 @Composable
 fun HomeScreen(
@@ -24,6 +28,11 @@ fun HomeScreen(
     onResponder: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val factory = rememberAppViewModelFactory()
+    val vm: HomeViewModel = viewModel(factory = factory)
+    val peerCount by vm.peerCount.collectAsStateWithLifecycle()
+    val relayOn by vm.relayRunning.collectAsStateWithLifecycle()
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -31,7 +40,11 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text("Mesh", style = MaterialTheme.typography.headlineSmall)
-        Text("No peers", style = MaterialTheme.typography.bodyMedium)
+        Text("Peers: $peerCount", style = MaterialTheme.typography.bodyMedium)
+        Text(
+            if (relayOn) "Relay on" else "Relay off",
+            style = MaterialTheme.typography.bodyMedium
+        )
         Spacer(Modifier.height(8.dp))
         Button(onClick = onSos, modifier = Modifier.fillMaxWidth()) {
             Text("SOS")

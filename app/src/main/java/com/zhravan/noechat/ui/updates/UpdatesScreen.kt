@@ -29,7 +29,9 @@ fun UpdatesScreen(onBack: () -> Unit) {
                 items(packets, key = { it.publicId }) { packet ->
                     Text(packet.status.name)
                     packet.note?.let { Text(it) }
-                    Text(packet.publicId)
+                    Text("Id: ${packet.publicId}")
+                    Text("Hops: ${packet.hopCount}  ${packet.origin}")
+                    Text("Relay pending: ${packet.pendingRelay}  Ack: ${packet.acknowledged}")
                     Spacer(Modifier.height(8.dp))
                     HorizontalDivider()
                     Spacer(Modifier.height(8.dp))
