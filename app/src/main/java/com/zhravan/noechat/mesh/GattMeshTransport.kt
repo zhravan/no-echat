@@ -28,16 +28,20 @@ import android.os.ParcelUuid
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import java.util.Collections
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
+import kotlin.random.Random
 
 @SuppressLint("MissingPermission")
 class GattMeshTransport(
@@ -49,7 +53,10 @@ class GattMeshTransport(
     private val _peerCount = MutableStateFlow(0)
     override val peerCount: StateFlow<Int> = _peerCount.asStateFlow()
 
-    private val discovered = Collections.synchronizedSet(mutableSetOf<String>())
+    private val peerLastSeen = ConcurrentHashMap<String, Long>()
+    private val chunkReassembly = GattChunkReassembly()
+    private var pruneJob: Job? = null
+
     private var parentScope: CoroutineScope? = null
     private var payloadHandler: (suspend (ByteArray) -> Unit)? = null
 
@@ -73,9 +80,17 @@ class GattMeshTransport(
         }
         startAdvertising(adapter)
         startScan()
+        pruneJob = parentScope.launch {
+            while (isActive) {
+                delay(MeshConstants.PEER_PRUNE_INTERVAL_MS)
+                pruneStalePeers()
+            }
+        }
     }
 
     override fun stop() {
+        pruneJob?.cancel()
+        pruneJob = null
         stopScan()
         stopAdvertising()
         gattServer?.services?.forEach { svc ->
@@ -85,7 +100,8 @@ class GattMeshTransport(
         gattServer = null
         parentScope = null
         payloadHandler = null
-        discovered.clear()
+        chunkReassembly.clear()
+        peerLastSeen.clear()
         _peerCount.value = 0
     }
 
@@ -94,7 +110,7 @@ class GattMeshTransport(
         val adapter = bluetoothManager.adapter ?: return@withContext false
         if (!adapter.isEnabled) return@withContext false
         if (payload.size > MeshConstants.MAX_WIRE_BYTES) return@withContext false
-        val targets = synchronized(discovered) { discovered.toList() }
+        val targets = peerLastSeen.keys.toList()
         if (targets.isEmpty()) return@withContext false
         var anySuccess = false
         for (address in targets) {
@@ -115,6 +131,38 @@ class GattMeshTransport(
             fun end(value: Boolean) {
                 if (finished.compareAndSet(false, true) && cont.isActive) cont.resume(value)
             }
+            val msgId = Random.nextInt()
+            var negotiatedMtu = 23
+            var framedChunks: List<ByteArray> = emptyList()
+            var chunkIdx = 0
+            var meshCharacteristic: BluetoothGattCharacteristic? = null
+
+            fun writeNextChunk(gatt: BluetoothGatt) {
+                val char = meshCharacteristic ?: run {
+                    gatt.disconnect()
+                    return
+                }
+                if (chunkIdx >= framedChunks.size) return
+                val frame = framedChunks[chunkIdx]
+                char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                val queued = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    val result = gatt.writeCharacteristic(
+                        char,
+                        frame,
+                        BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                    )
+                    result == BluetoothGatt.GATT_SUCCESS
+                } else {
+                    @Suppress("DEPRECATION")
+                    char.value = frame
+                    @Suppress("DEPRECATION")
+                    gatt.writeCharacteristic(char)
+                }
+                if (!queued) {
+                    gatt.disconnect()
+                }
+            }
+
             val gatt = device.connectGatt(
                 context.applicationContext,
                 false,
@@ -129,6 +177,9 @@ class GattMeshTransport(
                     }
 
                     override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
+                        if (status == BluetoothGatt.GATT_SUCCESS) {
+                            negotiatedMtu = mtu
+                        }
                         gatt.discoverServices()
                     }
 
@@ -145,23 +196,16 @@ class GattMeshTransport(
                             gatt.disconnect()
                             return
                         }
-                        characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                        val queued = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            val result = gatt.writeCharacteristic(
-                                characteristic,
-                                payload,
-                                BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                            )
-                            result == BluetoothGatt.GATT_SUCCESS
-                        } else {
-                            @Suppress("DEPRECATION")
-                            characteristic.value = payload
-                            @Suppress("DEPRECATION")
-                            gatt.writeCharacteristic(characteristic)
-                        }
-                        if (!queued) {
+                        meshCharacteristic = characteristic
+                        val maxBody = GattChunkFramer.maxBodyForMtu(negotiatedMtu)
+                        framedChunks = GattChunkFramer.split(payload, maxBody, msgId)
+                        if (framedChunks.isEmpty()) {
+                            end(true)
                             gatt.disconnect()
+                            return
                         }
+                        chunkIdx = 0
+                        writeNextChunk(gatt)
                     }
 
                     override fun onCharacteristicWrite(
@@ -169,9 +213,18 @@ class GattMeshTransport(
                         characteristic: BluetoothGattCharacteristic,
                         status: Int
                     ) {
-                        val ok = status == BluetoothGatt.GATT_SUCCESS
-                        end(ok)
-                        gatt.disconnect()
+                        if (status != BluetoothGatt.GATT_SUCCESS) {
+                            end(false)
+                            gatt.disconnect()
+                            return
+                        }
+                        chunkIdx++
+                        if (chunkIdx >= framedChunks.size) {
+                            end(true)
+                            gatt.disconnect()
+                        } else {
+                            writeNextChunk(gatt)
+                        }
                     }
                 },
                 BluetoothDevice.TRANSPORT_LE
@@ -194,8 +247,15 @@ class GattMeshTransport(
                 value: ByteArray?
             ) {
                 if (characteristic.uuid == NOECHAT_WRITE && value != null && value.isNotEmpty()) {
-                    val bytes = value.copyOf()
-                    scope.launch(Dispatchers.IO) { handler(bytes) }
+                    val address = device.address ?: return
+                    if (GattChunkFramer.looksLikeChunk(value)) {
+                        val complete = chunkReassembly.feed(address, value)
+                        if (complete != null) {
+                            scope.launch(Dispatchers.IO) { handler(complete) }
+                        }
+                    } else {
+                        scope.launch(Dispatchers.IO) { handler(value.copyOf()) }
+                    }
                 }
                 if (responseNeeded) {
                     gattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
@@ -228,8 +288,8 @@ class GattMeshTransport(
         scanCallback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 val addr = result.device?.address ?: return
-                discovered.add(addr)
-                _peerCount.value = discovered.size
+                peerLastSeen[addr] = System.currentTimeMillis()
+                _peerCount.value = peerLastSeen.size
             }
         }
         runCatching { sc.startScan(listOf(filter), settings, scanCallback) }
@@ -244,7 +304,19 @@ class GattMeshTransport(
         scanCallback = null
     }
 
-    private fun startAdvertising(adapter: android.bluetooth.BluetoothAdapter) {
+    private fun pruneStalePeers() {
+        val now = System.currentTimeMillis()
+        val it = peerLastSeen.entries.iterator()
+        while (it.hasNext()) {
+            val entry = it.next()
+            if (now - entry.value > MeshConstants.PEER_STALE_MS) {
+                it.remove()
+            }
+        }
+        _peerCount.value = peerLastSeen.size
+    }
+
+    private fun startAdvertising(adapter: BluetoothAdapter) {
         if (!hasAdvertisePermission()) return
         val adv = advertiser ?: return
         val settings = AdvertiseSettings.Builder()
