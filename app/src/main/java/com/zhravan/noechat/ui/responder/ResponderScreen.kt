@@ -58,6 +58,9 @@ fun ResponderScreen(onBack: () -> Unit) {
                     Text(packet.status.name)
                     packet.note?.let { Text(it) }
                     Text("Hops: ${packet.hopCount}  ${packet.origin}")
+                    if (packet.latitude != null && packet.longitude != null) {
+                        Text("Loc: ${packet.latitude}, ${packet.longitude}")
+                    }
                     Text("Ack: ${packet.acknowledged}")
                     if (!packet.acknowledged) {
                         Button(onClick = { vm.acknowledge(packet.publicId) }) {

@@ -20,7 +20,7 @@ class AppViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(SosViewModel::class.java) ->
-                SosViewModel(application.packetRepository) as T
+                SosViewModel(application) as T
             modelClass.isAssignableFrom(PacketsViewModel::class.java) ->
                 PacketsViewModel(application.packetRepository) as T
             modelClass.isAssignableFrom(HomeViewModel::class.java) ->

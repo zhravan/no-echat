@@ -4,6 +4,7 @@ import android.app.Application
 import com.zhravan.noechat.data.local.NoEchatDatabase
 import com.zhravan.noechat.data.repository.DefaultPacketRepository
 import com.zhravan.noechat.domain.PacketRepository
+import com.zhravan.noechat.identity.ActiveAlertStore
 import com.zhravan.noechat.identity.DeviceIdentityStore
 import com.zhravan.noechat.mesh.GattMeshTransport
 import com.zhravan.noechat.mesh.MeshCoordinator
@@ -17,6 +18,7 @@ class NoEchatApplication : Application() {
 
     private val database by lazy { NoEchatDatabase.build(this) }
     private val identityStore by lazy { DeviceIdentityStore(this) }
+    val activeAlertStore by lazy { ActiveAlertStore(this) }
     private val packetSigner: PacketSigner by lazy { KeystorePacketSigner(this) }
     private val meshTransport by lazy { GattMeshTransport(this) }
 

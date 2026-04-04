@@ -31,6 +31,9 @@ fun UpdatesScreen(onBack: () -> Unit) {
                     packet.note?.let { Text(it) }
                     Text("Id: ${packet.publicId}")
                     Text("Hops: ${packet.hopCount}  ${packet.origin}")
+                    if (packet.latitude != null && packet.longitude != null) {
+                        Text("Loc: ${packet.latitude}, ${packet.longitude}")
+                    }
                     Text("Relay pending: ${packet.pendingRelay}  Ack: ${packet.acknowledged}")
                     Spacer(Modifier.height(8.dp))
                     HorizontalDivider()

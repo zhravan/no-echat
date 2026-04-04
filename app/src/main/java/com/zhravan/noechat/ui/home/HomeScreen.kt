@@ -33,6 +33,7 @@ fun HomeScreen(
     val peerCount by vm.peerCount.collectAsStateWithLifecycle()
     val relayOn by vm.relayRunning.collectAsStateWithLifecycle()
     val lastSafeId by vm.lastSafeId.collectAsStateWithLifecycle()
+    val activePublicId by vm.activePublicId.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
@@ -47,6 +48,16 @@ fun HomeScreen(
             style = MaterialTheme.typography.bodyMedium
         )
         Spacer(Modifier.height(8.dp))
+        activePublicId?.let { id ->
+            Text("Active relay: $id", style = MaterialTheme.typography.bodySmall)
+            OutlinedButton(
+                onClick = { vm.stopActiveRelay() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Stop relaying alert")
+            }
+            Spacer(Modifier.height(8.dp))
+        }
         Button(onClick = onSos, modifier = Modifier.fillMaxWidth()) {
             Text("SOS")
         }

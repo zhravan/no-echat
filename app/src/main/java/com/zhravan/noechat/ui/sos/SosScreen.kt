@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +33,11 @@ fun SosScreen(onBack: () -> Unit) {
 
     var status by remember { mutableStateOf(EmergencyStatus.TRAPPED) }
     var note by remember { mutableStateOf("") }
+    var includeLocation by remember { mutableStateOf(false) }
+
+    val statusOptions = remember {
+        EmergencyStatus.entries.filter { it != EmergencyStatus.SAFE }
+    }
 
     SimpleScreen(title = "SOS", onBack = onBack) {
         Text("Status")
@@ -39,7 +45,7 @@ fun SosScreen(onBack: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(EmergencyStatus.entries.toList()) { item ->
+            items(statusOptions) { item ->
                 FilterChip(
                     selected = status == item,
                     onClick = { status = item },
@@ -47,6 +53,12 @@ fun SosScreen(onBack: () -> Unit) {
                 )
             }
         }
+        Spacer(Modifier.height(12.dp))
+        Text("Last known location")
+        Switch(
+            checked = includeLocation,
+            onCheckedChange = { includeLocation = it }
+        )
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = note,
@@ -58,7 +70,13 @@ fun SosScreen(onBack: () -> Unit) {
         )
         Spacer(Modifier.height(12.dp))
         Button(
-            onClick = { vm.broadcast(status, note.trim().ifEmpty { null }) },
+            onClick = {
+                vm.broadcast(
+                    status,
+                    note.trim().ifEmpty { null },
+                    includeLocation
+                )
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Broadcast")
