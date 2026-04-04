@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -16,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.zhravan.noechat.ui.common.SimpleScreen
+import com.zhravan.noechat.ui.copy.UserCopy
 
 @Composable
 fun ReadinessScreen(onBack: () -> Unit) {
@@ -50,22 +52,38 @@ fun ReadinessScreen(onBack: () -> Unit) {
 
     val showOptionalLocation = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
-    SimpleScreen(title = "Readiness", onBack = onBack) {
-        Text("Core: Bluetooth and notifications. On Android 12+ scan uses neverForLocation.")
+    SimpleScreen(title = "Setup & permissions", onBack = onBack) {
+        Text(
+            UserCopy.READINESS_INTRO,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(16.dp))
+        Text("Step 1 — required", style = MaterialTheme.typography.titleMedium)
+        Text(
+            "Bluetooth lets this app reach nearby phones. Notifications tell you when the app is helping in the background.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Spacer(Modifier.height(8.dp))
         Button(onClick = { coreLauncher.launch(corePermissions) }) {
-            Text("Request core permissions")
+            Text(UserCopy.READINESS_CORE_BUTTON)
         }
         if (showOptionalLocation) {
-            Spacer(Modifier.height(12.dp))
-            Text("Optional: fine location for older stacks or troubleshooting.")
+            Spacer(Modifier.height(20.dp))
+            Text("Step 2 — optional", style = MaterialTheme.typography.titleMedium)
+            Text(
+                UserCopy.READINESS_LOCATION_INTRO,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Spacer(Modifier.height(8.dp))
             Button(onClick = { locationLauncher.launch(locationOptional) }) {
-                Text("Request location (optional)")
+                Text(UserCopy.READINESS_LOCATION_BUTTON)
             }
         }
-        Spacer(Modifier.height(16.dp))
-        Text("Status")
+        Spacer(Modifier.height(24.dp))
+        Text("What's allowed now", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
         val allToShow = remember {
             buildList {
@@ -78,7 +96,10 @@ fun ReadinessScreen(onBack: () -> Unit) {
                 context,
                 permission
             ) == PackageManager.PERMISSION_GRANTED
-            Text("${permission.substringAfterLast('.')}: ${if (granted) "granted" else "denied"}")
+            Text(
+                "${UserCopy.permissionShortLabel(permission)}: ${UserCopy.yesNo(granted)}",
+                style = MaterialTheme.typography.bodyMedium
+            )
             Spacer(Modifier.height(4.dp))
         }
     }

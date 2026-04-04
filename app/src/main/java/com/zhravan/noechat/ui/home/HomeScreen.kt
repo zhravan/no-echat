@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -17,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.zhravan.noechat.ui.copy.UserCopy
 import com.zhravan.noechat.ui.rememberAppViewModelFactory
 
 @Composable
@@ -41,46 +44,74 @@ fun HomeScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Mesh", style = MaterialTheme.typography.headlineSmall)
-        Text("Peers: $peerCount", style = MaterialTheme.typography.bodyMedium)
+        Text("Home", style = MaterialTheme.typography.headlineSmall)
         Text(
-            if (relayOn) "Relay on" else "Relay off",
-            style = MaterialTheme.typography.bodyMedium
+            UserCopy.HOME_TAGLINE,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(Modifier.height(8.dp))
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.elevatedCardColors()
+        ) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Status", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    UserCopy.nearbyPhonesLine(peerCount),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    UserCopy.relayLine(relayOn),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
         activePublicId?.let { id ->
-            Text("Active relay: $id", style = MaterialTheme.typography.bodySmall)
+            Text(
+                "You are passing along someone else's alert (${UserCopy.shortReference(id)}).",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             OutlinedButton(
                 onClick = { vm.stopActiveRelay() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Stop relaying alert")
+                Text("Stop passing this alert")
             }
-            Spacer(Modifier.height(8.dp))
         }
+        Spacer(Modifier.height(4.dp))
+        Text(
+            UserCopy.HOME_SOS_HINT,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Button(onClick = onSos, modifier = Modifier.fillMaxWidth()) {
-            Text("SOS")
+            Text("I need help (SOS)")
         }
         OutlinedButton(
             onClick = { vm.broadcastSafe() },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("I am safe")
+            Text("I'm safe — tell others")
         }
         lastSafeId?.let { id ->
-            Text("Safe sent: $id", style = MaterialTheme.typography.bodySmall)
+            Text(
+                "Safe message sent. Reference: ${UserCopy.shortReference(id)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
         OutlinedButton(onClick = onReadiness, modifier = Modifier.fillMaxWidth()) {
-            Text("Readiness")
+            Text("Setup & permissions")
         }
         OutlinedButton(onClick = onVolunteer, modifier = Modifier.fillMaxWidth()) {
-            Text("Volunteer")
+            Text("Help pass alerts for others")
         }
         OutlinedButton(onClick = onResponder, modifier = Modifier.fillMaxWidth()) {
-            Text("Responder")
+            Text("Alerts from others nearby")
         }
         OutlinedButton(onClick = onUpdates, modifier = Modifier.fillMaxWidth()) {
-            Text("Updates")
+            Text("My alerts & activity")
         }
     }
 }
