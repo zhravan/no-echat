@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zhravan.noechat.NoEchatApplication
 import com.zhravan.noechat.domain.EmergencyStatus
-import com.zhravan.noechat.location.FreshLocationProvider
+import com.zhravan.noechat.location.LastKnownLocationProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +26,7 @@ class SosViewModel(
         viewModelScope.launch {
             val loc = withContext(Dispatchers.IO) {
                 if (includeLocation) {
-                    FreshLocationProvider.getLatLng(application)
+                    LastKnownLocationProvider.getLatLng(application)
                 } else {
                     null
                 }

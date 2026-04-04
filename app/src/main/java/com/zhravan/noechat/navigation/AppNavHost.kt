@@ -6,7 +6,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.zhravan.noechat.ui.home.HomeScreen
-import com.zhravan.noechat.ui.map.AlertMapScreen
 import com.zhravan.noechat.ui.readiness.ReadinessScreen
 import com.zhravan.noechat.ui.responder.ResponderScreen
 import com.zhravan.noechat.ui.sos.SosScreen
@@ -25,8 +24,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 onSos = { navController.navigate(Routes.SOS) },
                 onVolunteer = { navController.navigate(Routes.VOLUNTEER) },
                 onUpdates = { navController.navigate(Routes.UPDATES) },
-                onResponder = { navController.navigate(Routes.RESPONDER) },
-                onMap = { navController.navigate(Routes.MAP) }
+                onResponder = { navController.navigate(Routes.RESPONDER) }
             )
         }
         composable(Routes.READINESS) {
@@ -42,13 +40,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             UpdatesScreen(onBack = { navController.popBackStack() })
         }
         composable(Routes.RESPONDER) {
-            ResponderScreen(
-                onBack = { navController.popBackStack() },
-                onOpenMap = { navController.navigate(Routes.MAP) }
-            )
-        }
-        composable(Routes.MAP) {
-            AlertMapScreen(onBack = { navController.popBackStack() })
+            ResponderScreen(onBack = { navController.popBackStack() })
         }
     }
 }

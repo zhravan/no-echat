@@ -54,7 +54,7 @@ fun SosScreen(onBack: () -> Unit) {
             }
         }
         Spacer(Modifier.height(12.dp))
-        Text("Include fresh GPS (falls back to last known)")
+        Text("Last known location")
         Switch(
             checked = includeLocation,
             onCheckedChange = { includeLocation = it }

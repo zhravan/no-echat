@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.zhravan.noechat.NoEchatApplication
 import com.zhravan.noechat.ui.home.HomeViewModel
-import com.zhravan.noechat.ui.map.MapViewModel
 import com.zhravan.noechat.ui.responder.ResponderViewModel
 import com.zhravan.noechat.ui.sos.SosViewModel
 import com.zhravan.noechat.ui.updates.PacketsViewModel
@@ -30,8 +29,6 @@ class AppViewModelFactory(
                 VolunteerViewModel(application) as T
             modelClass.isAssignableFrom(ResponderViewModel::class.java) ->
                 ResponderViewModel(application.packetRepository) as T
-            modelClass.isAssignableFrom(MapViewModel::class.java) ->
-                MapViewModel(application.packetRepository) as T
             else -> error("Unknown ViewModel type: ${modelClass.name}")
         }
     }

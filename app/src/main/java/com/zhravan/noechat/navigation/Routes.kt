@@ -7,5 +7,4 @@ object Routes {
     const val VOLUNTEER = "volunteer"
     const val UPDATES = "updates"
     const val RESPONDER = "responder"
-    const val MAP = "map"
 }
