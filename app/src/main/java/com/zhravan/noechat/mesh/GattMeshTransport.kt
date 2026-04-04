@@ -53,6 +53,9 @@ class GattMeshTransport(
     private val _peerCount = MutableStateFlow(0)
     override val peerCount: StateFlow<Int> = _peerCount.asStateFlow()
 
+    private val _relayStats = MutableStateFlow(RelayStats(0, 0, 0L))
+    override val relayStats: StateFlow<RelayStats> = _relayStats.asStateFlow()
+
     private val peerLastSeen = ConcurrentHashMap<String, Long>()
     private val chunkReassembly = GattChunkReassembly()
     private var pruneJob: Job? = null
@@ -103,6 +106,7 @@ class GattMeshTransport(
         chunkReassembly.clear()
         peerLastSeen.clear()
         _peerCount.value = 0
+        _relayStats.value = RelayStats(0, 0, 0L)
     }
 
     override suspend fun relayBroadcast(payload: ByteArray): Boolean = withContext(Dispatchers.IO) {
@@ -111,13 +115,21 @@ class GattMeshTransport(
         if (!adapter.isEnabled) return@withContext false
         if (payload.size > MeshConstants.MAX_WIRE_BYTES) return@withContext false
         val targets = peerLastSeen.keys.toList()
-        if (targets.isEmpty()) return@withContext false
-        var anySuccess = false
+        if (targets.isEmpty()) {
+            _relayStats.value = RelayStats(0, 0, System.currentTimeMillis())
+            return@withContext false
+        }
+        var successes = 0
         for (address in targets) {
             val ok = writePayloadToPeer(adapter, address, payload)
-            if (ok) anySuccess = true
+            if (ok) successes++
         }
-        anySuccess
+        _relayStats.value = RelayStats(
+            peersTried = targets.size,
+            successes = successes,
+            timestampEpochMs = System.currentTimeMillis()
+        )
+        successes > 0
     }
 
     private suspend fun writePayloadToPeer(

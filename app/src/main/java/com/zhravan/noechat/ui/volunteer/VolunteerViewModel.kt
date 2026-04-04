@@ -6,11 +6,13 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import com.zhravan.noechat.NoEchatApplication
 import com.zhravan.noechat.mesh.RelayForegroundService
+import com.zhravan.noechat.mesh.RelayStats
 import kotlinx.coroutines.flow.StateFlow
 
 class VolunteerViewModel(application: NoEchatApplication) : ViewModel() {
     val peerCount: StateFlow<Int> = application.meshCoordinator.peerCount
     val relayRunning: StateFlow<Boolean> = application.relayRunning
+    val relayStats: StateFlow<RelayStats> = application.meshCoordinator.relayStats
 
     fun setRelay(context: Context, enabled: Boolean) {
         val appContext = context.applicationContext

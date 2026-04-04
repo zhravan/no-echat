@@ -8,4 +8,6 @@ object MeshConstants {
     const val GATT_MAX_CHUNK_BODY = 512
     const val PEER_STALE_MS = 30_000L
     const val PEER_PRUNE_INTERVAL_MS = 10_000L
+    const val RELAY_COOL_DOWN_MS = 2_000L
+    const val PURGE_INTERVAL_MS = 300_000L
 }

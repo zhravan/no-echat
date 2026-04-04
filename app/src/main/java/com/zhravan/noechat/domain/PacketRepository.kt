@@ -21,4 +21,6 @@ interface PacketRepository {
     suspend fun ingestFromWire(bytes: ByteArray): IngestResult
 
     suspend fun encodeForRelay(publicId: String): ByteArray?
+
+    suspend fun purgeExpired()
 }

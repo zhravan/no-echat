@@ -21,11 +21,20 @@ fun VolunteerScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val relayOn by vm.relayRunning.collectAsStateWithLifecycle()
     val peers by vm.peerCount.collectAsStateWithLifecycle()
+    val stats by vm.relayStats.collectAsStateWithLifecycle()
 
     SimpleScreen(title = "Volunteer", onBack = onBack) {
         Text("Relay packets when the foreground service is on.")
         Spacer(Modifier.height(12.dp))
         Text("Peers: $peers")
+        Spacer(Modifier.height(8.dp))
+        Text(
+            if (stats.timestampEpochMs == 0L) {
+                "Last send: —"
+            } else {
+                "Last send: ${stats.successes} of ${stats.peersTried} peers"
+            }
+        )
         Spacer(Modifier.height(12.dp))
         Switch(
             checked = relayOn,

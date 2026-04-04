@@ -130,6 +130,12 @@ class DefaultPacketRepository(
         entityToWireBytes(entity)
     }
 
+    override suspend fun purgeExpired() {
+        withContext(Dispatchers.IO) {
+            dao.deleteExpired(System.currentTimeMillis())
+        }
+    }
+
     private fun entityToWireBytes(entity: EmergencyPacketEntity): ByteArray? {
         val sig = entity.signatureBytes ?: return null
         if (entity.signingPublicKeySpkiB64.isEmpty()) return null
