@@ -32,6 +32,7 @@ fun HomeScreen(
     val vm: HomeViewModel = viewModel(factory = factory)
     val peerCount by vm.peerCount.collectAsStateWithLifecycle()
     val relayOn by vm.relayRunning.collectAsStateWithLifecycle()
+    val lastSafeId by vm.lastSafeId.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
@@ -48,6 +49,15 @@ fun HomeScreen(
         Spacer(Modifier.height(8.dp))
         Button(onClick = onSos, modifier = Modifier.fillMaxWidth()) {
             Text("SOS")
+        }
+        OutlinedButton(
+            onClick = { vm.broadcastSafe() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("I am safe")
+        }
+        lastSafeId?.let { id ->
+            Text("Safe sent: $id", style = MaterialTheme.typography.bodySmall)
         }
         OutlinedButton(onClick = onReadiness, modifier = Modifier.fillMaxWidth()) {
             Text("Readiness")

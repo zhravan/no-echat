@@ -6,5 +6,6 @@ enum class EmergencyStatus {
     MEDICAL,
     EVACUATION,
     NEEDS_SUPPLIES,
+    SAFE,
     OTHER
 }
