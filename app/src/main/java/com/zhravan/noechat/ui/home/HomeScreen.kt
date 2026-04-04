@@ -26,6 +26,7 @@ fun HomeScreen(
     onVolunteer: () -> Unit,
     onUpdates: () -> Unit,
     onResponder: () -> Unit,
+    onMap: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val factory = rememberAppViewModelFactory()
@@ -78,6 +79,9 @@ fun HomeScreen(
         }
         OutlinedButton(onClick = onResponder, modifier = Modifier.fillMaxWidth()) {
             Text("Responder")
+        }
+        OutlinedButton(onClick = onMap, modifier = Modifier.fillMaxWidth()) {
+            Text("Map")
         }
         OutlinedButton(onClick = onUpdates, modifier = Modifier.fillMaxWidth()) {
             Text("Updates")
