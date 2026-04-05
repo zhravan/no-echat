@@ -4,7 +4,7 @@ import android.Manifest
 import com.zhravan.noechat.data.local.PacketOrigin
 import com.zhravan.noechat.domain.EmergencyStatus
 
-/** Short user-facing phrases — avoid jargon (mesh, relay, hops, packets, etc.). */
+/** Short user-facing phrases, avoid jargon (mesh, relay, hops, packets, etc.). */
 object UserCopy {
 
     const val HOME_TAGLINE =
@@ -51,9 +51,9 @@ object UserCopy {
 
     fun permissionShortLabel(fullPermission: String): String = when (fullPermission) {
         Manifest.permission.POST_NOTIFICATIONS -> "Notifications"
-        Manifest.permission.BLUETOOTH_SCAN -> "Bluetooth — find nearby phones"
-        Manifest.permission.BLUETOOTH_CONNECT -> "Bluetooth — connect"
-        Manifest.permission.BLUETOOTH_ADVERTISE -> "Bluetooth — be discoverable"
+        Manifest.permission.BLUETOOTH_SCAN -> "Bluetooth: find nearby phones"
+        Manifest.permission.BLUETOOTH_CONNECT -> "Bluetooth: connect"
+        Manifest.permission.BLUETOOTH_ADVERTISE -> "Bluetooth: be discoverable"
         Manifest.permission.ACCESS_FINE_LOCATION -> "Precise location"
         else -> fullPermission.substringAfterLast('.')
             .replace('_', ' ')

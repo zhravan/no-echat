@@ -92,7 +92,7 @@ fun HomeScreen(
             onClick = { vm.broadcastSafe() },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("I'm safe — tell others")
+            Text("I'm safe, tell others")
         }
         lastSafeId?.let { id ->
             Text(

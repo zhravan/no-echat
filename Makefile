@@ -1,4 +1,4 @@
-# NoEchat — Android project. Requires JDK 17+.
+# NoEchat: Android project. Requires JDK 17+.
 #
 # Gradle needs the Android SDK. This Makefile sets ANDROID_HOME when it is
 # empty and a common install path exists. Otherwise set it yourself, e.g.:

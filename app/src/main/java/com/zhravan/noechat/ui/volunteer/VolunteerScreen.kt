@@ -36,7 +36,7 @@ fun VolunteerScreen(onBack: () -> Unit) {
         Spacer(Modifier.height(8.dp))
         Text(
             if (stats.timestampEpochMs == 0L) {
-                "No recent attempts yet — turn the switch on when you want to help."
+                "No recent attempts yet. Turn the switch on when you want to help."
             } else {
                 "Last attempt: reached ${stats.successes} of ${stats.peersTried} nearby phones."
             },
@@ -50,8 +50,8 @@ fun VolunteerScreen(onBack: () -> Unit) {
             onCheckedChange = { vm.setRelay(context, it) }
         )
         Text(
-            if (relayOn) "On — you may see a small ongoing notification while this runs."
-            else "Off — your phone will not forward alerts for others.",
+            if (relayOn) "On: you may see a small ongoing notification while this runs."
+            else "Off: your phone will not forward alerts for others.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

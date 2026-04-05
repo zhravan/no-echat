@@ -63,7 +63,7 @@ fun SosScreen(onBack: () -> Unit) {
         Spacer(Modifier.height(16.dp))
         Text("Share approximate location", style = MaterialTheme.typography.titleMedium)
         Text(
-            "Only if you turn this on. Uses the last location the phone already knew — not live tracking.",
+            "Only if you turn this on. Uses the last location the phone already knew, not live tracking.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

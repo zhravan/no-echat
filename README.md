@@ -26,7 +26,7 @@ Devices running no-echat form a local mesh over **Bluetooth LE**. Emergency pack
 - Packets are signed with a per-device key pair (ECDSA) to prevent spoofing
 - Packets are chunked, reassembled, and deduplicated across hops
 - Expired packets are purged automatically; hop count is tracked per packet
-- No internet, no WiFi, no server — purely device-to-device BLE
+- No internet, no WiFi, no server, purely device-to-device BLE
 
 ---
 
@@ -34,13 +34,13 @@ Devices running no-echat form a local mesh over **Bluetooth LE**. Emergency pack
 
 - Android with Bluetooth LE support
 - Permissions: `BLUETOOTH_SCAN`, `BLUETOOTH_ADVERTISE`, `BLUETOOTH_CONNECT`, `ACCESS_FINE_LOCATION`
-- Bluetooth must be **on** — the mesh does not function without it
+- Bluetooth must be **on**: the mesh does not function without it
 
 ---
 
 ## Inspiration
 
-Inspired by [2018](https://en.wikipedia.org/wiki/2018_(film)), the Malayalam disaster film about the 2018 Kerala floods — where ordinary people became heroes through collective action and solidarity. The film's subtitle, *"Every one is a hero"*, captures what no-echat is built around: giving anyone the tools to send help, receive help, or relay it forward, with no infrastructure required.
+Inspired by [2018](https://en.wikipedia.org/wiki/2018_(film)), the Malayalam disaster film about the 2018 Kerala floods, where ordinary people became heroes through collective action and solidarity. The film's subtitle, *"Every one is a hero"*, captures what no-echat is built around: giving anyone the tools to send help, receive help, or relay it forward, with no infrastructure required.
 
 ---
 

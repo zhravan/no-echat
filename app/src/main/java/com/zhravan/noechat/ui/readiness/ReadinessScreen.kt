@@ -59,7 +59,7 @@ fun ReadinessScreen(onBack: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(16.dp))
-        Text("Step 1 — required", style = MaterialTheme.typography.titleMedium)
+        Text("Step 1: required", style = MaterialTheme.typography.titleMedium)
         Text(
             "Bluetooth lets this app reach nearby phones. Notifications tell you when the app is helping in the background.",
             style = MaterialTheme.typography.bodySmall,
@@ -71,7 +71,7 @@ fun ReadinessScreen(onBack: () -> Unit) {
         }
         if (showOptionalLocation) {
             Spacer(Modifier.height(20.dp))
-            Text("Step 2 — optional", style = MaterialTheme.typography.titleMedium)
+            Text("Step 2: optional", style = MaterialTheme.typography.titleMedium)
             Text(
                 UserCopy.READINESS_LOCATION_INTRO,
                 style = MaterialTheme.typography.bodySmall,
