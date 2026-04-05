@@ -38,6 +38,12 @@ Devices running no-echat form a local mesh over **Bluetooth LE**. Emergency pack
 
 ---
 
+## Inspiration
+
+Inspired by [2018](https://en.wikipedia.org/wiki/2018_(film)), the Malayalam disaster film about the 2018 Kerala floods — where ordinary people became heroes through collective action and solidarity. The film's subtitle, *"Every one is a hero"*, captures what no-echat is built around: giving anyone the tools to send help, receive help, or relay it forward, with no infrastructure required.
+
+---
+
 ## Tech stack
 
 - Kotlin + Jetpack Compose
