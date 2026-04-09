@@ -2,15 +2,13 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION_NAME="${1:-${RELEASE_VERSION_NAME:-0.0.1}}"
+VERSION_FILE="$ROOT_DIR/version.txt"
+VERSION_NAME="$(tr -d '[:space:]' < "$VERSION_FILE")"
 
 if [[ ! "$VERSION_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "Version must look like 0.0.1, got: $VERSION_NAME" >&2
+  echo "version.txt must contain a semver like 0.0.1, got: $VERSION_NAME" >&2
   exit 1
 fi
-
-IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_NAME"
-VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
 
 TEMP_DIR="$(mktemp -d)"
 cleanup() {
@@ -52,8 +50,6 @@ fi
 
 "$ROOT_DIR/gradlew" \
   :app:publishReleaseBundle \
-  -PreleaseVersionName="$VERSION_NAME" \
-  -PreleaseVersionCode="$VERSION_CODE" \
   -PandroidKeystorePath="$KEYSTORE_PATH" \
   -PandroidKeystorePassword="$ANDROID_KEYSTORE_PASSWORD" \
   -PandroidKeyAlias="$ANDROID_KEY_ALIAS" \

@@ -6,6 +6,13 @@ plugins {
     alias(libs.plugins.play.publisher)
 }
 
+fun readReleaseVersionName(): String =
+    rootProject.file("version.txt").readText().trim().also { version ->
+        require(version.matches(Regex("""\d+\.\d+\.\d+"""))) {
+            "version.txt must contain a semver like 0.0.1, got: $version"
+        }
+    }
+
 fun semverToVersionCode(version: String): Int {
     val parts = version.split(".")
     val major = parts.getOrNull(0)?.toIntOrNull() ?: 0
@@ -14,16 +21,8 @@ fun semverToVersionCode(version: String): Int {
     return major * 10_000 + minor * 100 + patch
 }
 
-val releaseVersionName = providers.gradleProperty("releaseVersionName")
-    .orElse(providers.environmentVariable("RELEASE_VERSION_NAME"))
-    .orElse("0.0.1")
-    .get()
-
-val releaseVersionCode = providers.gradleProperty("releaseVersionCode")
-    .orElse(providers.environmentVariable("RELEASE_VERSION_CODE"))
-    .map(String::toInt)
-    .orElse(semverToVersionCode(releaseVersionName))
-    .get()
+val releaseVersionName = readReleaseVersionName()
+val releaseVersionCode = semverToVersionCode(releaseVersionName)
 
 val releaseKeystorePath = providers.gradleProperty("androidKeystorePath")
     .orElse(providers.environmentVariable("ANDROID_KEYSTORE_PATH"))

@@ -2,11 +2,6 @@ name: release-artifacts
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: Release version in semver form
-        required: true
-        default: "0.0.1"
   push:
     tags:
       - "v*"
@@ -23,22 +18,19 @@ jobs:
         id: version
         shell: bash
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            VERSION="${{ inputs.version }}"
-          else
-            VERSION="${GITHUB_REF_NAME#v}"
-          fi
+          VERSION="$(tr -d '[:space:]' < version.txt)"
 
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Expected semver like 0.0.1, got: $VERSION" >&2
             exit 1
           fi
 
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-          VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
+          if [[ "${{ github.event_name }}" == "push" && "${GITHUB_REF_NAME#v}" != "$VERSION" ]]; then
+            echo "Tag version (${GITHUB_REF_NAME#v}) does not match version.txt ($VERSION)" >&2
+            exit 1
+          fi
 
           echo "version_name=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -58,8 +50,6 @@ jobs:
           ./gradlew
           :app:bundleRelease
           :app:assembleRelease
-          -PreleaseVersionName=${{ steps.version.outputs.version_name }}
-          -PreleaseVersionCode=${{ steps.version.outputs.version_code }}
           --no-daemon
 
       - name: Upload release bundle

@@ -2,11 +2,6 @@ name: play-internal
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: Release version in semver form
-        required: true
-        default: "0.0.1"
   push:
     tags:
       - "v*"
@@ -23,14 +18,15 @@ jobs:
         id: version
         shell: bash
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            VERSION="${{ inputs.version }}"
-          else
-            VERSION="${GITHUB_REF_NAME#v}"
-          fi
+          VERSION="$(tr -d '[:space:]' < version.txt)"
 
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Expected semver like 0.0.1, got: $VERSION" >&2
+            exit 1
+          fi
+
+          if [[ "${{ github.event_name }}" == "push" && "${GITHUB_REF_NAME#v}" != "$VERSION" ]]; then
+            echo "Tag version (${GITHUB_REF_NAME#v}) does not match version.txt ($VERSION)" >&2
             exit 1
           fi
 
@@ -56,7 +52,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-        run: ./scripts/publish-play-internal.sh "${{ steps.version.outputs.version_name }}"
+        run: ./scripts/publish-play-internal.sh
 
       - name: Upload generated bundle artifact
         uses: actions/upload-artifact@v4
