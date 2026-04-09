@@ -13,6 +13,7 @@ import com.zhravan.noechat.mesh.MeshConstants
 import com.zhravan.noechat.mesh.crypto.PacketSigner
 import com.zhravan.noechat.mesh.wire.WirePacket
 import com.zhravan.noechat.mesh.wire.WirePacketCodec
+import com.zhravan.noechat.notifications.IncomingAlertNotifier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -23,6 +24,7 @@ class DefaultPacketRepository(
     private val dao: EmergencyPacketDao,
     private val identity: DeviceIdentityStore,
     private val signer: PacketSigner,
+    private val incomingAlertNotifier: IncomingAlertNotifier,
     private val ttlMs: Long = DEFAULT_TTL_MS
 ) : PacketRepository {
 
@@ -122,7 +124,12 @@ class DefaultPacketRepository(
             pendingRelay = nextHop < MeshConstants.MAX_HOPS
         )
         val inserted = dao.insertIfAbsent(entity)
-        if (!inserted) IngestResult.DUPLICATE else IngestResult.NEW
+        if (!inserted) {
+            IngestResult.DUPLICATE
+        } else {
+            incomingAlertNotifier.notify(entity.toDomain())
+            IngestResult.NEW
+        }
     }
 
     override suspend fun encodeForRelay(publicId: String): ByteArray? = withContext(Dispatchers.IO) {

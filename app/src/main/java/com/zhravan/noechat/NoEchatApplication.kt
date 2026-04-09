@@ -10,6 +10,7 @@ import com.zhravan.noechat.mesh.GattMeshTransport
 import com.zhravan.noechat.mesh.MeshCoordinator
 import com.zhravan.noechat.mesh.crypto.KeystorePacketSigner
 import com.zhravan.noechat.mesh.crypto.PacketSigner
+import com.zhravan.noechat.notifications.IncomingAlertNotifier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,12 +22,14 @@ class NoEchatApplication : Application() {
     val activeAlertStore by lazy { ActiveAlertStore(this) }
     private val packetSigner: PacketSigner by lazy { KeystorePacketSigner(this) }
     private val meshTransport by lazy { GattMeshTransport(this) }
+    private val incomingAlertNotifier by lazy { IncomingAlertNotifier(this) }
 
     val packetRepository: PacketRepository by lazy {
         DefaultPacketRepository(
             dao = database.emergencyPacketDao(),
             identity = identityStore,
-            signer = packetSigner
+            signer = packetSigner,
+            incomingAlertNotifier = incomingAlertNotifier
         )
     }
 
