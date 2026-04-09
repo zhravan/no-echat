@@ -1,3 +1,11 @@
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.play.publisher)
+}
+
 fun semverToVersionCode(version: String): Int {
     val parts = version.split(".")
     val major = parts.getOrNull(0)?.toIntOrNull() ?: 0
@@ -17,12 +25,32 @@ val releaseVersionCode = providers.gradleProperty("releaseVersionCode")
     .orElse(semverToVersionCode(releaseVersionName))
     .get()
 
-plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
-}
+val releaseKeystorePath = providers.gradleProperty("androidKeystorePath")
+    .orElse(providers.environmentVariable("ANDROID_KEYSTORE_PATH"))
+    .orNull
+
+val releaseKeystorePassword = providers.gradleProperty("androidKeystorePassword")
+    .orElse(providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD"))
+    .orNull
+
+val releaseKeyAlias = providers.gradleProperty("androidKeyAlias")
+    .orElse(providers.environmentVariable("ANDROID_KEY_ALIAS"))
+    .orNull
+
+val releaseKeyPassword = providers.gradleProperty("androidKeyPassword")
+    .orElse(providers.environmentVariable("ANDROID_KEY_PASSWORD"))
+    .orNull
+
+val playServiceAccountFile = providers.gradleProperty("playServiceAccountFile")
+    .orElse(providers.environmentVariable("PLAY_SERVICE_ACCOUNT_FILE"))
+    .orNull
+
+val hasReleaseSigning = listOf(
+    releaseKeystorePath,
+    releaseKeystorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword
+).all { !it.isNullOrBlank() }
 
 android {
     namespace = "com.zhravan.noechat"
@@ -36,9 +64,23 @@ android {
         versionName = releaseVersionName
     }
 
+    signingConfigs {
+        create("release") {
+            if (hasReleaseSigning) {
+                storeFile = file(requireNotNull(releaseKeystorePath))
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {
@@ -50,6 +92,14 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+}
+
+play {
+    track.set("internal")
+    defaultToAppBundles.set(true)
+    if (!playServiceAccountFile.isNullOrBlank()) {
+        serviceAccountCredentials.set(file(playServiceAccountFile))
     }
 }
 
