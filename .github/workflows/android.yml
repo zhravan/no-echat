@@ -6,6 +6,22 @@ on:
   pull_request:
 
 jobs:
+  version-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require version.txt update in PR
+        shell: bash
+        run: |
+          CHANGED_FILES="$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}")"
+          if ! printf '%s\n' "$CHANGED_FILES" | grep -qx 'version.txt'; then
+            echo "version.txt must be updated in every pull request." >&2
+            exit 1
+          fi
+
   build:
     runs-on: ubuntu-latest
     steps:
