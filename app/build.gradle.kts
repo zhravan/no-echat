@@ -1,3 +1,22 @@
+fun semverToVersionCode(version: String): Int {
+    val parts = version.split(".")
+    val major = parts.getOrNull(0)?.toIntOrNull() ?: 0
+    val minor = parts.getOrNull(1)?.toIntOrNull() ?: 0
+    val patch = parts.getOrNull(2)?.toIntOrNull() ?: 0
+    return major * 10_000 + minor * 100 + patch
+}
+
+val releaseVersionName = providers.gradleProperty("releaseVersionName")
+    .orElse(providers.environmentVariable("RELEASE_VERSION_NAME"))
+    .orElse("0.0.1")
+    .get()
+
+val releaseVersionCode = providers.gradleProperty("releaseVersionCode")
+    .orElse(providers.environmentVariable("RELEASE_VERSION_CODE"))
+    .map(String::toInt)
+    .orElse(semverToVersionCode(releaseVersionName))
+    .get()
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -13,8 +32,8 @@ android {
         applicationId = "com.zhravan.noechat"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = releaseVersionCode
+        versionName = releaseVersionName
     }
 
     buildTypes {
