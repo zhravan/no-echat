@@ -1,13 +1,17 @@
 package com.zhravan.noechat.ui.sos
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -17,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -26,6 +31,7 @@ import com.zhravan.noechat.ui.common.SimpleScreen
 import com.zhravan.noechat.ui.copy.UserCopy
 import com.zhravan.noechat.ui.rememberAppViewModelFactory
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SosScreen(onBack: () -> Unit) {
     val factory = rememberAppViewModelFactory()
@@ -35,6 +41,7 @@ fun SosScreen(onBack: () -> Unit) {
     var status by remember { mutableStateOf(EmergencyStatus.TRAPPED) }
     var note by remember { mutableStateOf("") }
     var includeLocation by remember { mutableStateOf(false) }
+    var typeMenuExpanded by remember { mutableStateOf(false) }
 
     val statusOptions = remember {
         EmergencyStatus.entries.filter { it != EmergencyStatus.SAFE }
@@ -47,37 +54,65 @@ fun SosScreen(onBack: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(16.dp))
-        Text("What kind of help?", style = MaterialTheme.typography.titleMedium)
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
+        ExposedDropdownMenuBox(
+            expanded = typeMenuExpanded,
+            onExpandedChange = { typeMenuExpanded = it }
         ) {
-            items(statusOptions) { item ->
-                FilterChip(
-                    selected = status == item,
-                    onClick = { status = item },
-                    label = { Text(UserCopy.emergencyStatus(item)) }
-                )
+            OutlinedTextField(
+                value = UserCopy.emergencyStatus(status),
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Situation") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeMenuExpanded) },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+            )
+            ExposedDropdownMenu(
+                expanded = typeMenuExpanded,
+                onDismissRequest = { typeMenuExpanded = false }
+            ) {
+                statusOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(UserCopy.emergencyStatus(option)) },
+                        onClick = {
+                            status = option
+                            typeMenuExpanded = false
+                        }
+                    )
+                }
             }
         }
         Spacer(Modifier.height(16.dp))
-        Text("Share approximate location", style = MaterialTheme.typography.titleMedium)
-        Text(
-            "Only if you turn this on. Uses the last location the phone already knew, not live tracking.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Switch(
-            checked = includeLocation,
-            onCheckedChange = { includeLocation = it }
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 12.dp)
+            ) {
+                Text("Approximate location", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    "Last known fix only, not live tracking.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = includeLocation,
+                onCheckedChange = { includeLocation = it }
+            )
+        }
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = note,
             onValueChange = { note = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Short message (optional)") },
-            placeholder = { Text("e.g. location, what you need") },
+            label = { Text("Note (optional)") },
+            placeholder = { Text("What you need") },
             singleLine = false,
             maxLines = 4
         )
@@ -97,7 +132,7 @@ fun SosScreen(onBack: () -> Unit) {
         lastId?.let { id ->
             Spacer(Modifier.height(12.dp))
             Text(
-                "Alert saved on this phone. Reference: ${UserCopy.shortReference(id)}",
+                "Saved · ${UserCopy.shortReference(id)}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

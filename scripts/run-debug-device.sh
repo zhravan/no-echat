@@ -65,7 +65,9 @@ pick_serial() {
       unauthorized) saw_unauthorized=1 ;;
       offline) saw_offline=1 ;;
     esac
-  done < <("$ADB" devices 2>/dev/null | awk 'NR>1 && NF>=2 {print $1, $2}')
+  done <<EOF
+$("$ADB" devices 2>/dev/null | awk 'NR>1 && NF>=2 {print $1, $2}')
+EOF
 
   if [[ ${#ready[@]} -gt 1 ]]; then
     echo "Multiple devices attached. Pick one and run again, e.g.:" >&2

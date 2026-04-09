@@ -3,7 +3,53 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.play.publisher)
 }
+
+fun readReleaseVersionName(): String =
+    rootProject.file("version.txt").readText().trim().also { version ->
+        require(version.matches(Regex("""\d+\.\d+\.\d+"""))) {
+            "version.txt must contain a semver like 0.0.1, got: $version"
+        }
+    }
+
+fun semverToVersionCode(version: String): Int {
+    val parts = version.split(".")
+    val major = parts.getOrNull(0)?.toIntOrNull() ?: 0
+    val minor = parts.getOrNull(1)?.toIntOrNull() ?: 0
+    val patch = parts.getOrNull(2)?.toIntOrNull() ?: 0
+    return major * 10_000 + minor * 100 + patch
+}
+
+val releaseVersionName = readReleaseVersionName()
+val releaseVersionCode = semverToVersionCode(releaseVersionName)
+
+val releaseKeystorePath = providers.gradleProperty("androidKeystorePath")
+    .orElse(providers.environmentVariable("ANDROID_KEYSTORE_PATH"))
+    .orNull
+
+val releaseKeystorePassword = providers.gradleProperty("androidKeystorePassword")
+    .orElse(providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD"))
+    .orNull
+
+val releaseKeyAlias = providers.gradleProperty("androidKeyAlias")
+    .orElse(providers.environmentVariable("ANDROID_KEY_ALIAS"))
+    .orNull
+
+val releaseKeyPassword = providers.gradleProperty("androidKeyPassword")
+    .orElse(providers.environmentVariable("ANDROID_KEY_PASSWORD"))
+    .orNull
+
+val playServiceAccountFile = providers.gradleProperty("playServiceAccountFile")
+    .orElse(providers.environmentVariable("PLAY_SERVICE_ACCOUNT_FILE"))
+    .orNull
+
+val hasReleaseSigning = listOf(
+    releaseKeystorePath,
+    releaseKeystorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword
+).all { !it.isNullOrBlank() }
 
 android {
     namespace = "com.zhravan.noechat"
@@ -13,13 +59,27 @@ android {
         applicationId = "com.zhravan.noechat"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = releaseVersionCode
+        versionName = releaseVersionName
+    }
+
+    signingConfigs {
+        create("release") {
+            if (hasReleaseSigning) {
+                storeFile = file(requireNotNull(releaseKeystorePath))
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {
@@ -31,6 +91,14 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+}
+
+play {
+    track.set("internal")
+    defaultToAppBundles.set(true)
+    if (!playServiceAccountFile.isNullOrBlank()) {
+        serviceAccountCredentials.set(file(playServiceAccountFile))
     }
 }
 
@@ -46,6 +114,7 @@ dependencies {
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
+    implementation(libs.material.icons.extended)
     implementation(libs.navigation.compose)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

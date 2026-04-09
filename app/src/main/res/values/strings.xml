@@ -4,4 +4,7 @@
     <string name="relay_channel_name">Help pass alerts</string>
     <string name="relay_notification_title">Helping share alerts</string>
     <string name="relay_notification_body">Passing alerts between nearby phones</string>
+    <string name="incoming_alert_channel_name">Incoming help alerts</string>
+    <string name="incoming_alert_channel_description">Alarm and vibration for new nearby help alerts</string>
+    <string name="incoming_alert_notification_title">New nearby help alert</string>
 </resources>
