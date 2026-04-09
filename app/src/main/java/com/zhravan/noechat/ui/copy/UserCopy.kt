@@ -8,30 +8,27 @@ import com.zhravan.noechat.domain.EmergencyStatus
 object UserCopy {
 
     const val HOME_TAGLINE =
-        "Send help requests to nearby phones over Bluetooth. No cell or Wi-Fi needed."
-
-    const val HOME_SOS_HINT = "Use when you need help from people around you."
+        "Nearby phones over Bluetooth. Works without cell or Wi‑Fi."
 
     const val READINESS_INTRO =
-        "NoEchat needs a few phone settings so it can find and talk to nearby devices."
+        "Allow Bluetooth and notifications so this phone can reach devices nearby."
 
     const val READINESS_CORE_BUTTON = "Allow Bluetooth & notifications"
 
     const val READINESS_LOCATION_INTRO =
-        "Optional: location helps show where you are on a map if you choose to share it in an alert."
+        "Optional: for maps if you share location in an alert."
 
     const val READINESS_LOCATION_BUTTON = "Allow location (optional)"
 
     const val SOS_INTRO =
-        "This sends your alert to nearby phones. They can pass it along further."
+        "Nearby phones get your alert; they can pass it on."
 
     const val VOLUNTEER_INTRO =
-        "When this is on, your phone can quietly pass alerts between other nearby phones. " +
-            "You stay in control and can turn it off anytime."
+        "Relay alerts between nearby phones when you want to. Turn off anytime."
 
-    const val RESPONDER_INTRO = "Alerts heard from people nearby (via Bluetooth)."
+    const val RESPONDER_INTRO = "From other phones in Bluetooth range."
 
-    const val UPDATES_INTRO = "Alerts you sent or that passed through this phone."
+    const val UPDATES_INTRO = "Sent here or relayed through this phone."
 
     fun emergencyStatus(status: EmergencyStatus): String = when (status) {
         EmergencyStatus.TRAPPED -> "Trapped / stuck"
@@ -67,13 +64,14 @@ object UserCopy {
     fun shortReference(id: String, head: Int = 12): String =
         if (id.length <= head) id else id.take(head) + "…"
 
-    fun relayLine(relayOn: Boolean): String =
-        if (relayOn) "Helping pass alerts for others: on"
-        else "Helping pass alerts for others: off"
-
     fun nearbyPhonesLine(count: Int): String = when {
         count == 0 -> "Phones nearby right now: none seen (move closer or check Bluetooth)"
         count == 1 -> "Phones nearby right now: 1"
         else -> "Phones nearby right now: $count"
     }
+
+    /** One line for the home status strip. */
+    fun homeStatusLine(peerCount: Int, relayOn: Boolean): String =
+        "${nearbyPhonesLine(peerCount)} · " +
+            if (relayOn) "Forwarding alerts for others" else "Not forwarding alerts"
 }

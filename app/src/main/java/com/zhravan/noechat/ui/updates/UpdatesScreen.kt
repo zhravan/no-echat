@@ -1,6 +1,7 @@
 package com.zhravan.noechat.ui.updates
 
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,21 +24,25 @@ fun UpdatesScreen(onBack: () -> Unit) {
     val vm: PacketsViewModel = viewModel(factory = factory)
     val packets by vm.packets.collectAsStateWithLifecycle()
 
-    SimpleScreen(title = "My alerts & activity", onBack = onBack) {
-        Text(
-            UserCopy.UPDATES_INTRO,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(12.dp))
-        if (packets.isEmpty()) {
+    SimpleScreen(title = "My alerts", onBack = onBack, scrollable = false) {
+        LazyColumn(Modifier.fillMaxWidth()) {
+            item {
+                Text(
+                    UserCopy.UPDATES_INTRO,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(12.dp))
+            }
+            if (packets.isEmpty()) {
+                item {
             Text(
-                "Nothing here yet. Sent alerts will show up after you use \"I need help\".",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else {
-            LazyColumn {
+                "Nothing yet — use \"I need help\" on the home screen.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
                 items(packets, key = { it.publicId }) { packet ->
                     Text(
                         UserCopy.emergencyStatus(packet.status),
